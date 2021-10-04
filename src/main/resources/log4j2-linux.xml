@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--设置log4j2的自身log级别为warn -->
+<configuration status="warn">
+
+	<Properties>
+		<Property name="App">vvic</Property>
+		<Property name="logDir">/uat/log/vvic</Property>
+		<Property name="splitSize">30 MB</Property>
+	</Properties>
+
+	<appenders>
+		<!-- 配置输出日志到控制台 -->
+		<console name="console" target="SYSTEM_OUT">
+			<PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - %l - %m%n" />
+		</console>
+
+		<!-- 配置输出日志到文件 -->
+		<RollingFile name="infoLog" fileName="${logDir}/${App}-info.log"
+			filePattern="${logDir}/$${date:yyyy-MM}/${App}info-%d{yyyy-MM-dd}-%i.log">
+
+			<!-- 配置过滤器，如何条件的日志才写入，支持组合条件过滤 -->
+			<Filters>
+				<!-- 符合INFO级别则写入文件，不符合则不写入 -->
+				<ThresholdFilter level="INFO" onMatch="ACCEPT"
+					onMismatch="DENY" />
+			</Filters>
+
+			<PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - %l - %m%n" />
+
+			<Policies>
+				<TimeBasedTriggeringPolicy />
+				<SizeBasedTriggeringPolicy size="${splitSize}" />
+			</Policies>
+
+		</RollingFile>
+
+		<RollingFile name="errorLog" fileName="${logDir}/${App}-error.log"
+			filePattern="${logDir}/$${date:yyyy-MM}/${App}-error-%d{yyyy-MM-dd}-%i.log">
+			<Filters>
+				<!-- 只记录error级别信息 -->
+				<ThresholdFilter level="ERROR" onMatch="ACCEPT"
+					onMismatch="DENY" />
+			</Filters>
+
+			<PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - %l - %m%n" />
+
+			<Policies>
+				<TimeBasedTriggeringPolicy />
+				<SizeBasedTriggeringPolicy size="${splitSize}" />
+			</Policies>
+
+		</RollingFile>
+
+	</appenders>
+
+	<loggers>
+		<!-- 设置启用哪些日志Appender -->
+		<root level="all">
+			<appender-ref ref="console" />
+			<appender-ref ref="infoLog" />
+			<appender-ref ref="errorLog" />
+		</root>
+
+		<!--过滤掉一些无用的debug信息 -->
+		<logger name="org.springframework" level="INFO"></logger>
+		<logger name="org.eclipse.jetty" level="INFO"></logger>
+	</loggers>
+
+</configuration>

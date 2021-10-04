@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC " -//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mofong.vvic.dao.PosOrderDao">
+
+	<insert id="PosOrderInsertBatch">
+		INSERT IGNORE INTO `vvic`.`pos_order`(`orderId`, `orderNo`,
+		`customerName`, `originPrice`,
+		`changePrice`,`totalNum`,`getNum`,`returnNum`,`getPrice`,`returnPrice`,`ctime`,`ymd`)
+		VALUES
+		<foreach collection="list" separator="," item="item">
+			(#{item.orderId},#{item.orderNo}, #{item.customerName},
+			#{item.originPrice}, #{item.changePrice}, #{item.totalNum},
+			#{item.getNum}, #{item.returnNum},
+			#{item.getPrice},#{item.returnPrice}, #{item.ctime},
+			#{item.ymd})
+		</foreach>
+	</insert>
+
+	<insert id="PosOrderDetailInsertBatch">
+		INSERT IGNORE INTO `vvic`.`pos_order_detail`(`orderDetailId`,
+		`orderNo`,
+		`artNo`, `size`,
+		`title`,`indexImgUrl`,`skuNum`,`changePrice`,`actualPrice`,`skuLevelPrice`,`ctime`,`ymd`,`unitPrice`,`type`,`orderType`,`skuCancelNum`,`showNum`)
+		VALUES
+		<foreach collection="list" separator="," item="item">
+			(#{item.orderDetailId},#{item.orderNo}, #{item.artNo},
+			#{item.size},
+			#{item.title}, #{item.indexImgUrl},
+			#{item.skuNum},
+			#{item.changePrice}, #{item.actualPrice},#{item.skuLevelPrice},
+			#{item.ctime},
+			#{item.ymd},#{item.unitPrice},#{item.type},#{item.orderType},#{item.skuCancelNum},#{item.showNum})
+		</foreach>
+	</insert>
+
+	<select id="queryTest" resultType="Map">
+		select po.customerName
+		name,sum(rt) rt,sum(sale) sale from
+		(select orderNo,case when skuNum
+		&lt; 0 then skuNum else 0 end rt,case when
+		skuNum &gt; 0 then skuNum
+		else 0 end sale,actualPrice,MONTH(ymd) m from
+		vvic.pos_order_detail
+		where ymd &gt;= '2021-08-01' and ymd &lt; '2021-09-15') pod
+		left join
+		(select customerName,orderNo from vvic.pos_order where ymd &gt;=
+		'2021-08-01' and ymd
+		&lt; '2021-09-15') po
+		on pod.orderNo = po.orderNo
+		GROUP BY pod.m,po.customerName
+		order by pod.m desc
+	</select>
+</mapper>
