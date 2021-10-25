@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <settings>
+        <!-- 设置但JDBC类型为空时,某些驱动程序 要指定值,default:OTHER，插入空值时不需要指定类型 -->
+        <setting name="jdbcTypeForNull" value="NULL"/>
+        
+        <!-- 当返回类型为Map时，数据集合中即使字段值为空，也需要在map中添加对应的keyvalue, 3.2版本以上可用-->
+        <setting name="callSettersOnNulls" value="TRUE"/>
+      
+    </settings>
+</configuration>
+ 
