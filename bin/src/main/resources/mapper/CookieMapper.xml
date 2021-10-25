@@ -6,14 +6,5 @@
 		select `cookie` from `cookie` where
 		cookie_id=#{id} and is_available=1
 	</select>
-	
-	<update id="updateCookieById">
-		update `cookie` set is_available=1,cookie=#{cookie},create_time=now(),update_time=now() where cookie_id=#{id}
-	</update>
-	
-	<update id="setCookieNotAvailable">
-		update `cookie` set is_available=0,update_time=now() where cookie_id=#{id}
-	</update>
-	
 
 </mapper>

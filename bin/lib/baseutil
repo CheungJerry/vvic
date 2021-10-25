@@ -1,0 +1,2 @@
+mvn install:install-file -DgroupId=com.mofong.baseutil -DartifactId=baseutil 
+-Dverion=1.0.0 -Dfile=./baseutil/baseutil-1.0.0.jar -Dpackaging=jar
