@@ -27,7 +27,8 @@ public class VVICTest {
 
 	@Test
 	public void testInsertBatchPosOrders() {
-		service.savePosOrder("2021-10-01", "2021-10-02");
+//		service.savePosOrder("2021-10-01", "2021-10-02");
+		service.updateVvicDataByDate(2021, 10);
 	}
 
 	public static void main(String[] args) {

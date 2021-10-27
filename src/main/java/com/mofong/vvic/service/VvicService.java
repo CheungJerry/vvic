@@ -88,8 +88,9 @@ public class VvicService {
 		Iterator<Map.Entry<Long, PosOrderDetail>> onlineMapIterator = onlineListMap.entrySet().iterator();
 		while (onlineMapIterator.hasNext()) {
 			Map.Entry<Long, PosOrderDetail> entry = onlineMapIterator.next();
-			if (Date.valueOf(((PosOrderDetail) entry.getValue()).getYmd()).after(maxDate))
+			if (Date.valueOf(((PosOrderDetail) entry.getValue()).getYmd()).after(maxDate)) {
 				continue;
+			}
 			PosOrderDetail dbPOS = dbListMap.get(entry.getKey());
 			if (dbPOS == null) {
 				hadUpdated = true;
@@ -125,27 +126,34 @@ public class VvicService {
 				Integer.valueOf(poListOnline.size()));
 		Map<String, PosOrder> dbListMap = new HashMap<>(poListDB.size());
 		Map<String, PosOrder> onlineListMap = new HashMap<>(poListOnline.size());
-		for (PosOrder posOrder : poListDB)
+		for (PosOrder posOrder : poListDB) {
 			dbListMap.put(posOrder.getOrderId(), posOrder);
-		for (PosOrder posOrder : poListOnline)
+		}
+		for (PosOrder posOrder : poListOnline) {
 			onlineListMap.put(posOrder.getOrderId(), posOrder);
+		}
 		List<PosOrder> changeList = new ArrayList<>();
 		Iterator<Map.Entry<String, PosOrder>> onlineMapIterator = onlineListMap.entrySet().iterator();
 		while (onlineMapIterator.hasNext()) {
 			Map.Entry<String, PosOrder> entry = onlineMapIterator.next();
-			if (Date.valueOf(((PosOrder) entry.getValue()).getYmd()).after(maxDate))
+			if (Date.valueOf(((PosOrder) entry.getValue()).getYmd()).after(maxDate)) {
+				onlineMapIterator.remove();
 				continue;
+			}
 			PosOrder dbPO = dbListMap.get(entry.getKey());
 			if (dbPO == null) {
 				changeList.add(entry.getValue());
 				hadUpdated = true;
 				continue;
 			}
-			if (((PosOrder) entry.getValue()).equals(dbPO))
+			if (((PosOrder) entry.getValue()).equals(dbPO)) {
 				continue;
+			}
 			hadUpdated = true;
 			changeList.add(entry.getValue());
 		}
+
+		logger.info("onlineListMap : {},dbListMap : {}", onlineListMap.size(), dbListMap.size());
 		Set<String> delSet = new HashSet<>();
 		Iterator<Map.Entry<String, PosOrder>> dbMapIterator = dbListMap.entrySet().iterator();
 		while (dbMapIterator.hasNext()) {
