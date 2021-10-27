@@ -57,6 +57,28 @@
 			<version>1.5.9.RELEASE</version>
 		</dependency>
 
+		<!-- httpclient -->
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.3.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpmime</artifactId>
+			<version>4.3.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jsoup</groupId>
+			<artifactId>jsoup</artifactId>
+			<version>1.7.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-java</artifactId>
+			<version>3.141.59</version>
+		</dependency>
+
 		<!-- spring cache -->
 		<!-- <dependency> <groupId>org.springframework.boot</groupId> <artifactId>spring-boot-starter-cache</artifactId> 
 			<version>1.5.9.RELEASE</version> </dependency> -->
@@ -79,7 +101,7 @@
 			<version>1.2.3</version>
 		</dependency>
 
-		<!-- SpringBoot-->
+		<!-- SpringBoot -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -95,14 +117,14 @@
 			<version>5.0.2.RELEASE</version>
 		</dependency>
 
-		<!-- MySQL-->
+		<!-- MySQL -->
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
 			<version>8.0.18</version>
 		</dependency>
 
-		<!-- Druid-->
+		<!-- Druid -->
 		<dependency>
 			<groupId>com.alibaba</groupId>
 			<artifactId>druid</artifactId>
@@ -163,7 +185,7 @@
 					<target>1.8</target> <!-- -->
 					<!-- -->
 					<encoding>UTF8</encoding>
-					<!--windows-->
+					<!--windows -->
 				</configuration>
 			</plugin>
 
@@ -172,7 +194,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<version>1.5.9.RELEASE</version>
 				<configuration>
-					<mainClass>com.mofong.App</mainClass>  <!-- Class-->
+					<mainClass>com.mofong.App</mainClass>  <!-- Class -->
 					<layout>ZIP</layout>
 					<includeSystemScope>true</includeSystemScope>
 				</configuration>
