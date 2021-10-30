@@ -14,8 +14,8 @@ import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.util.ObjectUtils;
 
-@Configuration
-@EnableScheduling
+//@Configuration
+//@EnableScheduling
 public class VvicSchedule implements SchedulingConfigurer {
 	private static Logger logger = LoggerFactory.getLogger(com.mofong.vvic.config.VvicSchedule.class);
 

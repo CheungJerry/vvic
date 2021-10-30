@@ -15,8 +15,10 @@ public class ChromeDriverUtil {
 
 	private static ChromeOptions getDefaultOptions() {
 		ChromeOptions options = new ChromeOptions();
+		// 无头模式下测试开全屏网页
+		options.addArguments("--window-size=1920,1080");
 		// 无头模式
-//		options.addArguments("--headless");
+		options.addArguments("--headless");
 		// 沙箱
 		options.addArguments("--no-sandbox");
 		// 设置允许弹框
@@ -24,7 +26,9 @@ public class ChromeDriverUtil {
 		// 设置无gui 开发时还是不要加，可以看到浏览器效果
 		options.addArguments(
 				"--user-agent='Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36 OPR/26.0.1656.60'");
-		options.addArguments("--disable-infobars", "disable-web-security", "--auto-open-devtools-for-tabs");
+		options.addArguments("--disable-infobars", "disable-web-security");
+		// 开启开发者模式
+//		options.addArguments("--auto-open-devtools-for-tabs");
 		// 设置允许cookie和javascript 测试
 		options.addArguments("--enable-javascript");
 		options.addArguments("--enable-cookie");

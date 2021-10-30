@@ -52,7 +52,7 @@ public class VvicService {
 
 	private static CookieDao cookieDaoInit;
 
-	@PostConstruct
+//	@PostConstruct
 	public void init() {
 		logger.info("从数据库获取cookie");
 		this.logDao.addLog(Log.info().setOperation("初始化cookie").setOperation_detail("从数据库获取cookie"));

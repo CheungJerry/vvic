@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.openqa.selenium.Cookie;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -57,7 +58,8 @@ public class LvTestSelenium {
 			Thread.sleep(3000L);
 			String pageSource = driver.getPageSource();
 			pageSource = driver.getPageSource();
-
+			Document docMain = Jsoup.parse(pageSource);
+			System.out.println(docMain.toString());
 			WebDriver.Options manage = driver.manage();
 			Set<Cookie> cookies = manage.getCookies();
 //			manage.deleteAllCookies();
@@ -75,6 +77,8 @@ public class LvTestSelenium {
 //			System.out.println(rtnString);
 			driver.get(url);
 			pageSource = driver.getPageSource();
+			docMain = Jsoup.parse(pageSource);
+			System.out.println(docMain.toString());
 			Document doc = Jsoup.parse(pageSource);
 //			System.out.println(doc.toString());
 //			driver.get(driver.getCurrentUrl());
@@ -86,13 +90,21 @@ public class LvTestSelenium {
 //			for (Cookie c : cookies) {
 //				System.out.println(c.getName() + " = " + c.getValue());
 //			}
-			for (int i = 0; i < 20; i++) {
+			for (int i = 0; i < 5; i++) {
+				ChromeDriver cDriver = (ChromeDriver) driver;
+				Object ret = cDriver.executeScript("return window.navigator.webdriver");
+				System.out.println(ret);// true，模拟浏览器指纹已被暴露
 //				driver.get("https://api-www.louisvuitton.cn/api/zhs-cn/catalog/skuavailability/M58788");
+
+				manage = driver.manage();
+				manage.deleteAllCookies();
+
 				driver.get("https://api-cn.louisvuitton.cn/api/zhs-cn/catalog/availability/nvprod3190089v");
 				pageSource = driver.getPageSource();
 				doc = Jsoup.parse(pageSource);
 				String pre = doc.getElementsByTag("pre").text();
 				if (StringUtils.isEmpty(pre)) {
+					System.out.println("denied");
 					driver.get(url);
 					continue;
 				}
