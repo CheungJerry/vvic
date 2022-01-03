@@ -194,6 +194,9 @@ public class VvicService {
 		return Result.error("更新cookie数量：" + updateCount);
 	}
 
+	/**
+	 * vvic定时任务
+	 */
 	public void vvicShedule() {
 		logger.info(LocalDateTime.now().toString() + "执行了vvic定时任务");
 		this.logDao.addLog(Log.info().setOperation("定时任务开始执行"));
@@ -204,7 +207,12 @@ public class VvicService {
 			savePosOrderDetail(vvicDate, vvicDate);
 			this.logDao.addLog(Log.info().setOperation("PosOrderDetail完成"));
 			logger.info(LocalDateTime.now().toString() + "vvic定时任务 执行成功");
-			this.logDao.addLog(Log.info().setOperation("定时任务执行成功"));
+			this.logDao.addLog(Log.info().setOperation("获取vvic数据成功"));
+			LocalDateTime lastDay = LocalDateTime.now().plusDays(-1);
+			if (lastDay.getDayOfMonth() % 10 == 0 || LocalDateTime.now().getDayOfMonth() == 1) {
+				updateVvicDataByDate(lastDay.getYear(), lastDay.getMonthValue());
+			}
+			this.logDao.addLog(Log.info().setOperation("更新vvic数据成功"));
 		} catch (Exception e) {
 			logger.error(LocalDateTime.now().toString() + "vvic定时任务 执行失败");
 			this.logDao.addLog(Log.error().setOperation("定时任务执行失败").setOperation_detail(e.getMessage()));

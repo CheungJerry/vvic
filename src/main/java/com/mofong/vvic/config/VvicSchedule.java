@@ -25,6 +25,9 @@ public class VvicSchedule implements SchedulingConfigurer {
 	@Autowired
 	private CronDao cronDao;
 
+	/**
+	 * 定时获取vvic数据
+	 */
 	public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
 		taskRegistrar.addTriggerTask(() -> this.vvicService.vvicShedule(), triggerContext -> {
 			String cron = this.cronDao.getCronById("vvic");
