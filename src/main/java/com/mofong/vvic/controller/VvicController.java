@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mofong.bean.Result;
+import com.mofong.vvic.service.CookieService;
 import com.mofong.vvic.service.VvicService;
 
 @RestController
@@ -23,10 +24,21 @@ public class VvicController {
 	@Autowired
 	private VvicService vvicService;
 
+	@Autowired
+	private CookieService cookieService;
+
+	/**
+	 * 手动刷新vvic的数据
+	 * 
+	 * @param year
+	 * @param month
+	 * @return
+	 */
 	@GetMapping({ "/refreshVvicData" })
-	public Result updateVvicData(@RequestParam("year") Integer year, @RequestParam("month") Integer month) {
+	public Result updateVvicData(@RequestParam("year") Integer year, @RequestParam("month") Integer month,
+			@RequestParam("account") String account) {
 		try {
-			return this.vvicService.updateVvicDataByDate(year.intValue(), month.intValue());
+			return this.vvicService.updateVvicDataByDate(year.intValue(), month.intValue(), CookieService.cookieMap.get(account));
 		} catch (Exception e) {
 			return Result.error(e.getMessage());
 		}
@@ -42,31 +54,44 @@ public class VvicController {
 		}
 	}
 
-	@RequestMapping({ "/scheduleTest" })
-	public Result scheduleTest() {
-		try {
-			this.vvicService.vvicShedule();
-			return Result.success();
-		} catch (Exception e) {
-			return Result.error(e.getMessage());
-		}
-	}
+//	@RequestMapping({ "/scheduleTest" })
+//	public Result scheduleTest() {
+//		try {
+//			this.vvicService.vvicShedule();
+//			return Result.success();
+//		} catch (Exception e) {
+//			return Result.error(e.getMessage());
+//		}
+//	}
 
+	/**
+	 * 从数据库刷新cookie
+	 * 
+	 * @return
+	 */
 	@RequestMapping({ "/refreshCookie" })
 	public Result refreshCookie() {
 		try {
 			logger.info("手动刷新cookie");
-			this.vvicService.init();
+			this.cookieService.init();
 			return Result.success();
 		} catch (Exception e) {
 			return Result.error(e.getMessage());
 		}
 	}
 
+	/**
+	 * 手动更新cookie
+	 * 
+	 * @param cookie
+	 * @param cookieId
+	 * @return
+	 */
 	@RequestMapping({ "/refreshCookieManual" })
-	public Result refreshCookieManual(@RequestParam String cookie) {
+	public Result refreshCookieManual(@RequestParam("cookie") String cookie,
+			@RequestParam("cookieId") String cookieId) {
 		try {
-			return this.vvicService.updateCookie(cookie);
+			return this.cookieService.updateCookie(cookie, cookieId);
 		} catch (Exception e) {
 			return Result.error(e.getMessage());
 		}

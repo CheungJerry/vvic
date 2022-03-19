@@ -1,0 +1,21 @@
+CREATE TABLE `pos_order_detail` (
+  `orderDetailId` bigint NOT NULL,
+  `orderNo` varchar(25) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `artNo` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `size` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `title` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `indexImgUrl` varchar(2000) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `skuNum` int DEFAULT NULL,
+  `changePrice` double(10,2) DEFAULT NULL,
+  `skuLevelPrice` double(10,2) DEFAULT NULL,
+  `actualPrice` double(10,2) DEFAULT NULL,
+  `ctime` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ymd` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `unitPrice` double(10,2) DEFAULT NULL,
+  `type` tinyint DEFAULT NULL,
+  `orderType` tinyint DEFAULT NULL,
+  `skuCancelNum` int DEFAULT NULL,
+  `showNum` int DEFAULT NULL,
+  PRIMARY KEY (`orderDetailId`),
+  UNIQUE KEY `idx_no_detailid` (`orderDetailId`,`orderNo`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

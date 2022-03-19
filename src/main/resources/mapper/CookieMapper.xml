@@ -7,6 +7,10 @@
 		cookie_id=#{id} and is_available=1
 	</select>
 	
+	<select id="queryAllCookie" resultType="com.mofong.vvic.bean.Cookie">
+		select `cookie_id`,`cookie`,`is_available` from `cookie` where is_available=1
+	</select>
+	
 	<update id="updateCookieById">
 		update `cookie` set is_available=1,cookie=#{cookie},create_time=now(),update_time=now() where cookie_id=#{id}
 	</update>

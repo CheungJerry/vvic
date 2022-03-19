@@ -11,23 +11,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.PostConstruct;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 import com.mofong.bean.Result;
 import com.mofong.util.GetRequest;
 import com.mofong.util.JsonUtil;
+import com.mofong.vvic.bean.Cookie;
 import com.mofong.vvic.bean.Log;
 import com.mofong.vvic.bean.PosOrder;
 import com.mofong.vvic.bean.PosOrderDetail;
-import com.mofong.vvic.dao.CookieDao;
 import com.mofong.vvic.dao.LogDao;
 import com.mofong.vvic.dao.PosOrderDao;
 
@@ -38,43 +35,62 @@ public class VvicService {
 	RestTemplate restTemplate = new RestTemplate();
 
 	@Autowired
-	private PosOrderDao posOrderDao;
+	private CookieService cookieService;
 
 	@Autowired
-	private CookieDao cookieDao;
+	private PosOrderDao posOrderDao;
+
+//	@Autowired
+//	private CookieDao cookieDao;
 
 	@Autowired
 	private LogDao logDao;
 
 	private static String exportPosRecordUrl = "https://www.vvic.com/apic/trade/pos/record?currentPage=%s&pageSize=80&startDate=%s&endDate=%s&pos_resource_id=19&keywords=";
 
-	private String cookie;
+//	private String cookie;
+//
+//	private static CookieDao cookieDaoInit;
+//
+//	@PostConstruct
+//	public void init() {
+//		logger.info("从数据库获取cookie");
+//		this.logDao.addLog(Log.info().setOperation("初始化cookie").setOperation_detail("从数据库获取cookie"));
+//		cookieDaoInit = this.cookieDao;
+//		this.cookie = cookieDaoInit.getCookieById("vvic");
+//	}
 
-	private static CookieDao cookieDaoInit;
-
-	@PostConstruct
-	public void init() {
-		logger.info("从数据库获取cookie");
-		this.logDao.addLog(Log.info().setOperation("初始化cookie").setOperation_detail("从数据库获取cookie"));
-		cookieDaoInit = this.cookieDao;
-		this.cookie = cookieDaoInit.getCookieById("vvic");
-	}
-
-	public Result updateVvicDataByDate(int year, int month) {
+	/**
+	 * 更新posorder和posorderdetail数据
+	 * 
+	 * @param year
+	 * @param month
+	 * @return
+	 */
+	public Result updateVvicDataByDate(int year, int month, Cookie cookie) {
 		Date start = Date.valueOf(LocalDate.of(year, month, 1));
 		Date end = Date.valueOf(start.toLocalDate().plusMonths(1L).plusDays(-1L));
 		Map<String, String> resultMap = new HashMap<>();
-		resultMap.put("订单总览", updatePosOrderFromDate(year, month, start, end));
-		resultMap.put("订单详情", updatePosOrderDetailFromDate(year, month, start, end));
+		resultMap.put("订单总览", updatePosOrderFromDate(year, month, start, end, cookie));
+		resultMap.put("订单详情", updatePosOrderDetailFromDate(year, month, start, end, cookie));
 		return Result.success(resultMap);
 	}
 
-	private String updatePosOrderDetailFromDate(int year, int month, Date start, Date end) {
+	/**
+	 * 更新posorderdetail
+	 * 
+	 * @param year
+	 * @param month
+	 * @param start
+	 * @param end
+	 * @return
+	 */
+	private String updatePosOrderDetailFromDate(int year, int month, Date start, Date end, Cookie cookie) {
 		Date maxDate = Date.valueOf(this.posOrderDao.queryMaxDateInPosOrderDetail());
 		boolean hadUpdated = false;
 		List<PosOrderDetail> podListDB = this.posOrderDao.queryPosOrderDetailByDate(start,
 				Date.valueOf(end.toLocalDate().plusDays(1L)));
-		List<PosOrderDetail> podListOnline = getPosOrderDetailListFromDate(start.toString(), end.toString());
+		List<PosOrderDetail> podListOnline = getPosOrderDetailListFromDate(start.toString(), end.toString(), cookie);
 		logger.info("PosOrderDetail ---> db list size : {}, Online list size : {}", Integer.valueOf(podListDB.size()),
 				Integer.valueOf(podListOnline.size()));
 		Map<Long, PosOrderDetail> dbListMap = new HashMap<>(podListDB.size());
@@ -115,12 +131,21 @@ public class VvicService {
 		return rtn;
 	}
 
-	private String updatePosOrderFromDate(int year, int month, Date start, Date end) {
+	/**
+	 * 更新posorder
+	 * 
+	 * @param year
+	 * @param month
+	 * @param start
+	 * @param end
+	 * @return
+	 */
+	private String updatePosOrderFromDate(int year, int month, Date start, Date end, Cookie cookie) {
 		Date maxDate = Date.valueOf(this.posOrderDao.queryMaxDateInPosOrder());
 		boolean hadUpdated = false;
 		List<PosOrder> poListDB = this.posOrderDao.queryPosOrderByDate(start,
 				Date.valueOf(end.toLocalDate().plusDays(1L)));
-		List<PosOrder> poListOnline = getPosOrderListFromDate(start.toString(), end.toString());
+		List<PosOrder> poListOnline = getPosOrderListFromDate(start.toString(), end.toString(), cookie);
 		logger.info("PosOrder ---> db list size : {}, Online list size : {}", Integer.valueOf(poListDB.size()),
 				Integer.valueOf(poListOnline.size()));
 		Map<String, PosOrder> dbListMap = new HashMap<>(poListDB.size());
@@ -178,47 +203,32 @@ public class VvicService {
 		return rtn;
 	}
 
-	public Result updateCookie(String cookie) {
-		if (StringUtils.isEmpty(cookie))
-			return Result.error("参数为空");
-		String dbCookie = this.cookieDao.getCookieById("vvic");
-		if (!StringUtils.isEmpty(dbCookie) && cookie.trim().equals(dbCookie.trim()))
-			return Result.success("cookie相同无需更新");
-		logger.info("更新cookie");
-		int updateCount = this.cookieDao.updateCookieById(cookie, "vvic");
-		logger.info("更新cookie数量：" + updateCount);
-		if (updateCount == 1) {
-			this.cookie = cookie;
-			return Result.success();
-		}
-		return Result.error("更新cookie数量：" + updateCount);
-	}
-
 	/**
 	 * vvic定时任务
 	 */
-	public void vvicShedule() {
-		logger.info(LocalDateTime.now().toString() + "执行了vvic定时任务");
-		this.logDao.addLog(Log.info().setOperation("定时任务开始执行"));
+	public void vvicShedule(Cookie cookie) {
+		logger.info(cookie.getCookie_id() + ":" + LocalDateTime.now().toString() + "执行了定时任务");
+		this.logDao.addLog(Log.info().setOperation(cookie.getCookie_id() + ":" + "定时任务开始执行"));
 		try {
 			String vvicDate = LocalDate.now().plusDays(-1L).toString();
-			savePosOrder(vvicDate, vvicDate);
-			this.logDao.addLog(Log.info().setOperation("PosOrder完成"));
-			savePosOrderDetail(vvicDate, vvicDate);
-			this.logDao.addLog(Log.info().setOperation("PosOrderDetail完成"));
-			logger.info(LocalDateTime.now().toString() + "vvic定时任务 执行成功");
-			this.logDao.addLog(Log.info().setOperation("获取vvic数据成功"));
+			savePosOrder(vvicDate, vvicDate, cookie);
+			this.logDao.addLog(Log.info().setOperation(cookie.getCookie_id() + ":" + "PosOrder完成"));
+			savePosOrderDetail(vvicDate, vvicDate, cookie);
+			this.logDao.addLog(Log.info().setOperation(cookie.getCookie_id() + ":" + "PosOrderDetail完成"));
+			logger.info(cookie.getCookie_id() + ":" + LocalDateTime.now().toString() + "定时任务 执行成功");
+			this.logDao.addLog(Log.info().setOperation(cookie.getCookie_id() + ":" + "获取数据成功"));
 			LocalDateTime lastDay = LocalDateTime.now().plusDays(-1);
 			if (lastDay.getDayOfMonth() % 10 == 0 || LocalDateTime.now().getDayOfMonth() == 1) {
-				updateVvicDataByDate(lastDay.getYear(), lastDay.getMonthValue());
+				updateVvicDataByDate(lastDay.getYear(), lastDay.getMonthValue(), cookie);
 			}
-			this.logDao.addLog(Log.info().setOperation("更新vvic数据成功"));
+			this.logDao.addLog(Log.info().setOperation(cookie.getCookie_id() + ":" + "更新数据成功"));
 		} catch (Exception e) {
-			logger.error(LocalDateTime.now().toString() + "vvic定时任务 执行失败");
-			this.logDao.addLog(Log.error().setOperation("定时任务执行失败").setOperation_detail(e.getMessage()));
+			logger.error(cookie.getCookie_id() + ":" + LocalDateTime.now().toString() + "定时任务 执行失败");
+			this.logDao.addLog(Log.error().setOperation(cookie.getCookie_id() + ":" + "定时任务执行失败")
+					.setOperation_detail(e.getMessage()));
 		} finally {
-			logger.info(LocalDateTime.now().toString() + "完成了vvic定时任务");
-			this.logDao.addLog(Log.info().setOperation("定时任务结束执行"));
+			logger.info(cookie.getCookie_id() + ":" + LocalDateTime.now().toString() + "完成了定时任务");
+			this.logDao.addLog(Log.info().setOperation(cookie.getCookie_id() + ":" + "定时任务结束执行"));
 		}
 	}
 
@@ -226,8 +236,8 @@ public class VvicService {
 		return this.posOrderDao.queryTest();
 	}
 
-	public Object savePosOrderDetail(String start, String end) {
-		List<PosOrderDetail> posOrderDetails = getPosOrderDetailListFromDate(start, end);
+	public Object savePosOrderDetail(String start, String end, Cookie cookie) {
+		List<PosOrderDetail> posOrderDetails = getPosOrderDetailListFromDate(start, end, cookie);
 		logger.info("details count : " + posOrderDetails.size());
 		int insertCount = 0;
 		List<PosOrderDetail> tempList = new ArrayList<>();
@@ -247,16 +257,16 @@ public class VvicService {
 		return Integer.valueOf(insertCount);
 	}
 
-	private List<PosOrderDetail> getPosOrderDetailListFromDate(String start, String end) {
+	private List<PosOrderDetail> getPosOrderDetailListFromDate(String start, String end, Cookie cookie) {
 		boolean flag = true;
 		HttpHeaders headers = new HttpHeaders();
-		headers.add("cookie", this.cookie);
+		headers.add("cookie", cookie.getCookie());
 		Integer curPage = Integer.valueOf(1);
 		List<PosOrderDetail> posOrderDetails = new ArrayList<>();
 		while (flag) {
 			String requestUrl = String.format(exportPosRecordUrl, new Object[] { curPage.toString(), start, end });
 			String result = GetRequest.requestByGetBackString(requestUrl, new HashMap<>(), this.restTemplate, headers);
-			List<PosOrderDetail> posOrderDetailResult = getPosOrderDetails(result);
+			List<PosOrderDetail> posOrderDetailResult = getPosOrderDetails(result, cookie);
 			if (posOrderDetailResult.size() == 0)
 				break;
 			Integer integer1 = curPage, integer2 = curPage = Integer.valueOf(curPage.intValue() + 1);
@@ -265,8 +275,8 @@ public class VvicService {
 		return posOrderDetails;
 	}
 
-	public Object savePosOrder(String start, String end) {
-		List<PosOrder> posOrders = getPosOrderListFromDate(start, end);
+	public Object savePosOrder(String start, String end, Cookie cookie) {
+		List<PosOrder> posOrders = getPosOrderListFromDate(start, end, cookie);
 		logger.info("orders count : " + posOrders.size());
 		int insertCount = 0;
 		List<PosOrder> tempList = new ArrayList<>();
@@ -285,16 +295,16 @@ public class VvicService {
 		return Integer.valueOf(insertCount);
 	}
 
-	private List<PosOrder> getPosOrderListFromDate(String start, String end) {
+	private List<PosOrder> getPosOrderListFromDate(String start, String end, Cookie cookie) {
 		boolean flag = true;
 		HttpHeaders headers = new HttpHeaders();
-		headers.add("cookie", this.cookie);
+		headers.add("cookie", cookie.getCookie());
 		Integer curPage = Integer.valueOf(1);
 		List<PosOrder> posOrders = new ArrayList<>();
 		while (flag) {
 			String requestUrl = String.format(exportPosRecordUrl, new Object[] { curPage.toString(), start, end });
 			String result = GetRequest.requestByGetBackString(requestUrl, new HashMap<>(), this.restTemplate, headers);
-			List<PosOrder> posOrdersResult = getPosOrders(result);
+			List<PosOrder> posOrdersResult = getPosOrders(result, cookie);
 			if (posOrdersResult.size() == 0)
 				break;
 			Integer integer1 = curPage, integer2 = curPage = Integer.valueOf(curPage.intValue() + 1);
@@ -303,42 +313,56 @@ public class VvicService {
 		return posOrders;
 	}
 
-	public Object exportPosRecord(String start, String end) {
-		boolean getPosRecordFlag = true;
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("cookie", this.cookie);
-		Integer curPage = Integer.valueOf(1);
-		List<PosOrderDetail> posOrderDetails = new ArrayList<>();
-		Map<String, String> customerNameMap = new HashMap<>();
-		while (getPosRecordFlag) {
-			String requestUrl = String.format(exportPosRecordUrl, new Object[] { curPage.toString(), start, end });
-			System.out.println(requestUrl);
-			String result = GetRequest.requestByGetBackString(requestUrl, new HashMap<>(), this.restTemplate, headers);
-			Map<String, Object> map = JsonUtil.str2Map(result);
-			Map<String, Object> data = (Map<String, Object>) map.get("data");
-			List<Map<String, Object>> recordList = (List<Map<String, Object>>) data.get("recordList");
-			if (recordList.size() == 0)
-				break;
-			Integer integer1 = curPage, integer2 = curPage = Integer.valueOf(curPage.intValue() + 1);
-			getPosRecordFlag = true;
-			for (Map<String, Object> record : recordList)
-				customerNameMap.put((String) record.get("orderNo"), (String) record.get("customerName"));
-			List<PosOrderDetail> posOrderDetailsTemp = getPosOrderDetails(result);
-			for (PosOrderDetail posOrderDetail : posOrderDetailsTemp) {
-				posOrderDetail.setCustomerName(customerNameMap.get(posOrderDetail.getOrderNo()));
-				posOrderDetails.add(posOrderDetail);
-			}
-		}
-		String fileName = "D://save//desktop/simpleWrite" + System.currentTimeMillis() + ".xls";
-		return null;
-	}
+//	/**
+//	 * 本地导出
+//	 * 
+//	 * @param start
+//	 * @param end
+//	 * @return
+//	 */
+//	public Object exportPosRecord(String start, String end, String cookieId) {
+//		boolean getPosRecordFlag = true;
+//		HttpHeaders headers = new HttpHeaders();
+//		headers.add("cookie", CookieService.cookieMap.get(cookieId).getCookie());
+//		Integer curPage = Integer.valueOf(1);
+//		List<PosOrderDetail> posOrderDetails = new ArrayList<>();
+//		Map<String, String> customerNameMap = new HashMap<>();
+//		while (getPosRecordFlag) {
+//			String requestUrl = String.format(exportPosRecordUrl, new Object[] { curPage.toString(), start, end });
+//			System.out.println(requestUrl);
+//			String result = GetRequest.requestByGetBackString(requestUrl, new HashMap<>(), this.restTemplate, headers);
+//			Map<String, Object> map = JsonUtil.str2Map(result);
+//			Map<String, Object> data = (Map<String, Object>) map.get("data");
+//			List<Map<String, Object>> recordList = (List<Map<String, Object>>) data.get("recordList");
+//			if (recordList.size() == 0)
+//				break;
+//			Integer integer1 = curPage, integer2 = curPage = Integer.valueOf(curPage.intValue() + 1);
+//			getPosRecordFlag = true;
+//			for (Map<String, Object> record : recordList)
+//				customerNameMap.put((String) record.get("orderNo"), (String) record.get("customerName"));
+//			List<PosOrderDetail> posOrderDetailsTemp = getPosOrderDetails(result);
+//			for (PosOrderDetail posOrderDetail : posOrderDetailsTemp) {
+//				posOrderDetail.setCustomerName(customerNameMap.get(posOrderDetail.getOrderNo()));
+//				posOrderDetails.add(posOrderDetail);
+//			}
+//		}
+//		String fileName = "D://save//desktop/simpleWrite" + System.currentTimeMillis() + ".xls";
+//		return null;
+//	}
 
-	private List<PosOrderDetail> getPosOrderDetails(String result) {
+	/**
+	 * 构造PosOrderDetail List
+	 * 
+	 * @param result
+	 * @return
+	 */
+	private List<PosOrderDetail> getPosOrderDetails(String result, Cookie cookie) {
 		List<PosOrderDetail> posOrderDetails = new ArrayList<>();
 		Map<String, Object> map = JsonUtil.str2Map(result);
-		boolean flag = queryRequestResult(map);
-		if (!flag)
+		boolean flag = cookieService.queryRequestResult(map, cookie.getCookie_id());
+		if (!flag) {
 			return new ArrayList<>();
+		}
 		List<Map<String, Object>> recordList = getPosRecordDetailList(map);
 		for (Map<String, Object> record : recordList) {
 			PosOrderDetail posOrderDetail = new PosOrderDetail(record);
@@ -347,10 +371,16 @@ public class VvicService {
 		return posOrderDetails;
 	}
 
-	private List<PosOrder> getPosOrders(String result) {
+	/**
+	 * 构造 PosOrder List
+	 * 
+	 * @param result
+	 * @return
+	 */
+	private List<PosOrder> getPosOrders(String result, Cookie cookie) {
 		List<PosOrder> posOrders = new ArrayList<>();
 		Map<String, Object> map = JsonUtil.str2Map(result);
-		boolean flag = queryRequestResult(map);
+		boolean flag = cookieService.queryRequestResult(map, cookie.getCookie_id());
 		if (!flag)
 			return new ArrayList<>();
 		List<Map<String, Object>> recordList = getPosRecordList(map);
@@ -376,12 +406,4 @@ public class VvicService {
 		return recordDetailList;
 	}
 
-	private boolean queryRequestResult(Map<String, Object> data) {
-		int code = ((Integer) data.get("code")).intValue();
-		if (code == 200)
-			return true;
-		this.cookieDao.setCookieNotAvailable("vvic");
-		logger.info("请求失败，msg：" + (String) data.get("message"));
-		return false;
-	}
 }

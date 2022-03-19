@@ -1,5 +1,7 @@
 package com.mofong;
 
+import java.time.LocalDateTime;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -8,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import com.mofong.vvic.bean.Cookie;
+import com.mofong.vvic.service.CookieService;
 import com.mofong.vvic.service.VvicService;
 
 @RunWith(SpringRunner.class)
@@ -20,15 +24,23 @@ public class VVICTest {
 	@Autowired
 	private VvicService service;
 
-//	@Test
-//	public void test() {
-//		service.exportPosRecord("2021-09-01", "2021-09-13");
-//	}
+//	@Autowired
+//	private CookieService cookieService;
 
 	@Test
-	public void testInsertBatchPosOrders() {
-		service.savePosOrder("2021-10-01", "2021-10-02");
+	public void test() {
+//		service.exportPosRecord("2021-09-01", "2021-09-13");
+		service.savePosOrder("2018-01-01", "2019-01-01", CookieService.cookieMap.get("vvic"));
 	}
+
+//	@Test
+//	public void testInsertBatchPosOrders() {
+//		LocalDateTime lastDay = LocalDateTime.now().plusDays(-1);
+////		if (lastDay.getDayOfMonth() % 10 == 0 || LocalDateTime.now().getDayOfMonth() == 1) {
+//			System.out.println(lastDay.getYear()+","+ lastDay.getMonthValue());
+////		}
+////		service.updateVvicDataByDate(2022, 1);
+//	}
 
 	public static void main(String[] args) {
 		String exportPosRecordUrl = "https://www.vvic.com/apic/trade/pos/record?currentPage=1&pageSize=1&startDate=%s&endDate=%s&pos_resource_id=19&keywords=";
