@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mofong.bean.Result;
+import com.mofong.vvic.config.VvicSchedule;
 import com.mofong.vvic.service.CookieService;
 import com.mofong.vvic.service.VvicService;
 
@@ -26,6 +27,9 @@ public class VvicController {
 
 	@Autowired
 	private CookieService cookieService;
+	
+	@Autowired
+	private VvicSchedule vvicSchedule;
 
 	/**
 	 * 手动刷新vvic的数据
@@ -96,4 +100,21 @@ public class VvicController {
 			return Result.error(e.getMessage());
 		}
 	}
+	
+//	/**
+//	 * 手动更新cookie
+//	 * 
+//	 * @param cookie
+//	 * @param cookieId
+//	 * @return
+//	 */
+//	@RequestMapping({ "/checkSchedule" })
+//	public Result checkAllSchedule() {
+//		try {
+//			vvicSchedule.queryAllSchedule();
+//			return null;
+//		} catch (Exception e) {
+//			return Result.error(e.getMessage());
+//		}
+//	}
 }

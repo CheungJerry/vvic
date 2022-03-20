@@ -12,6 +12,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import com.mofong.vvic.bean.Cookie;
@@ -21,6 +22,7 @@ import com.mofong.vvic.service.VvicService;
 
 @Configuration
 @EnableScheduling
+@Service("vvicSchedule")
 public class VvicSchedule implements SchedulingConfigurer {
 	private static Logger logger = LoggerFactory.getLogger(com.mofong.vvic.config.VvicSchedule.class);
 
@@ -29,6 +31,8 @@ public class VvicSchedule implements SchedulingConfigurer {
 
 	@Autowired
 	private CronDao cronDao;
+
+	private ScheduledTaskRegistrar TASK;
 
 	/**
 	 * 定时获取vvic数据
@@ -42,10 +46,19 @@ public class VvicSchedule implements SchedulingConfigurer {
 				logger.error("cron错误");
 				continue;
 			}
-			taskRegistrar.addTriggerTask(() -> this.vvicService.vvicShedule(entry.getValue()), triggerContext -> {
-				return (new CronTrigger(cron)).nextExecutionTime(triggerContext);
-			});
+//			taskRegistrar.addTriggerTask(() -> this.vvicService.vvicShedule(entry.getValue()), triggerContext -> {
+//				return (new CronTrigger(cron)).nextExecutionTime(triggerContext);
+//			});
+			tasks(taskRegistrar, cron, entry.getValue());
 		}
-
+		TASK = taskRegistrar;
 	}
+
+	private void tasks(ScheduledTaskRegistrar taskRegistrar, String cron, Cookie cookie) {
+		taskRegistrar.addTriggerTask(() -> this.vvicService.vvicShedule(cookie), triggerContext -> {
+			logger.info(cookie.getCookie_id() + ":定时任务，cron:" + cron);
+			return (new CronTrigger(cron)).nextExecutionTime(triggerContext);
+		});
+	}
+
 }
