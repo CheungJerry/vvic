@@ -37,11 +37,12 @@ public class VvicSchedule implements SchedulingConfigurer {
 		Iterator<Entry<String, Cookie>> cookieIterator = CookieService.cookieMap.entrySet().iterator();
 		while (cookieIterator.hasNext()) {
 			Map.Entry<String, Cookie> entry = (Map.Entry<String, Cookie>) cookieIterator.next();
+			String cron = this.cronDao.getCronById(entry.getValue().getCookie_id());
+			if (ObjectUtils.isEmpty(cron)) {
+				logger.error("cron错误");
+				continue;
+			}
 			taskRegistrar.addTriggerTask(() -> this.vvicService.vvicShedule(entry.getValue()), triggerContext -> {
-				String cron = this.cronDao.getCronById(entry.getValue().getCookie_id());
-				if (ObjectUtils.isEmpty(cron)) {
-					logger.error("cron错误");
-				}
 				return (new CronTrigger(cron)).nextExecutionTime(triggerContext);
 			});
 		}

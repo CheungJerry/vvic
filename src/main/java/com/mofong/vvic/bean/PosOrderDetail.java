@@ -8,6 +8,8 @@ public class PosOrderDetail {
 
 	String orderNo;
 
+	String account;
+
 	String customerName;
 
 	String artNo;
@@ -46,6 +48,7 @@ public class PosOrderDetail {
 	public PosOrderDetail(Map<String, Object> map) {
 		this.orderDetailId = JsonUtil.getLong(map.get("orderDetailId"));
 		this.orderNo = (String) map.get("orderNo");
+		this.account = (String) map.get("account");
 		this.artNo = (String) map.get("artNo");
 		this.size = (String) map.get("size");
 		this.title = (String) map.get("title");
@@ -77,6 +80,14 @@ public class PosOrderDetail {
 
 	public void setOrderNo(String orderNo) {
 		this.orderNo = orderNo;
+	}
+
+	public String getAccount() {
+		return account;
+	}
+
+	public void setAccount(String account) {
+		this.account = account;
 	}
 
 	public String getCustomerName() {
@@ -215,12 +226,13 @@ public class PosOrderDetail {
 				+ ", actualPrice=" + this.actualPrice + "/" + pos.actualPrice + ", unitPrice=" + this.unitPrice + "/"
 				+ pos.unitPrice + ", type=" + this.type + "/" + pos.type + ", orderType=" + this.orderType + "/"
 				+ pos.orderType + ", skuCancelNum=" + this.skuCancelNum + "/" + pos.skuCancelNum + ", showNum="
-				+ this.showNum + "/" + pos.showNum + "]";
+				+ this.showNum + "/" + pos.showNum + ", account=" + this.account + "/" + pos.account + "]";
 	}
 
 	public int hashCode() {
 		int prime = 31;
 		int result = 1;
+		result = 31 * result + ((this.account == null) ? 0 : this.account.hashCode());
 		result = 31 * result + ((this.actualPrice == null) ? 0 : this.actualPrice.hashCode());
 		result = 31 * result + ((this.artNo == null) ? 0 : this.artNo.hashCode());
 		result = 31 * result + ((this.changePrice == null) ? 0 : this.changePrice.hashCode());
@@ -356,6 +368,12 @@ public class PosOrderDetail {
 			if (other.ymd != null)
 				return false;
 		} else if (!this.ymd.equals(other.ymd)) {
+			return false;
+		}
+		if (this.account == null) {
+			if (other.account != null)
+				return false;
+		} else if (!this.account.equals(other.account)) {
 			return false;
 		}
 		return true;

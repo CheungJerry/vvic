@@ -15,19 +15,25 @@ public interface PosOrderDao {
 
 	List<Map<String, Object>> queryTest();
 
-	List<PosOrder> queryPosOrderByDate(@Param("start") Date paramDate1, @Param("end") Date paramDate2);
+	List<PosOrder> queryPosOrderByDate(@Param("start") Date paramDate1, @Param("end") Date paramDate2,
+			@Param("account") String account);
 
-	List<PosOrderDetail> queryPosOrderDetailByDate(@Param("start") Date paramDate1, @Param("end") Date paramDate2);
+	List<PosOrderDetail> queryPosOrderDetailByDate(@Param("start") Date paramDate1, @Param("end") Date paramDate2,
+			@Param("account") String account);
 
-	int updatePosOrder(PosOrder paramPosOrder);
+//	int updatePosOrder(PosOrder paramPosOrder);
+//
+//	int updatePosOrderDetail(PosOrderDetail paramPosOrderDetail);
 
-	int updatePosOrderDetail(PosOrderDetail paramPosOrderDetail);
+	int deletePosOrderByYmd(@Param("ymd") String ymd, @Param("account") String account);
+	
+	int deletePosOrderDetailByYmd(@Param("ymd") String ymd, @Param("account") String account);
+	
+//	int deletePosOrderDetailByOrderNo(@Param("paramSet") Set<String> paramSet, @Param("account") String account);
 
-	int deletePosOrderDetailByOrderNo(Set<String> paramSet);
+//	int deletePosOrderByOrderNo(@Param("paramSet") Set<String> paramSet, @Param("account") String account);
 
-	int deletePosOrderByOrderNo(Set<String> paramSet);
-
-	String queryMaxDateInPosOrder();
-
-	String queryMaxDateInPosOrderDetail();
+//	String queryMaxDateInPosOrder();
+//
+//	String queryMaxDateInPosOrderDetail();
 }

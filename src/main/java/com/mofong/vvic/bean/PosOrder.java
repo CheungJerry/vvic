@@ -10,6 +10,8 @@ public class PosOrder {
 
 	String orderNo;
 
+	String account;
+
 	String customerName;
 
 	String operatorName;
@@ -40,6 +42,7 @@ public class PosOrder {
 	public PosOrder(Map<String, Object> map) {
 		this.orderId = (String) map.get("orderId");
 		this.orderNo = (String) map.get("orderNo");
+		this.account = (String) map.get("account");
 		this.customerName = (String) map.get("customerName");
 		this.operatorName = (String) map.get("operatorName");
 		this.originPrice = (Double) map.get("originPrice");
@@ -59,6 +62,7 @@ public class PosOrder {
 	public int hashCode() {
 		int prime = 31;
 		int result = 1;
+		result = 31 * result + ((this.account == null) ? 0 : this.account.hashCode());
 		result = 31 * result + ((this.changePrice == null) ? 0 : this.changePrice.hashCode());
 		result = 31 * result + ((this.ctime == null) ? 0 : this.ctime.hashCode());
 		result = 31 * result + ((this.customerName == null) ? 0 : this.customerName.hashCode());
@@ -155,6 +159,12 @@ public class PosOrder {
 		} else if (!this.ymd.equals(other.ymd)) {
 			return false;
 		}
+		if (this.account == null) {
+			if (other.account != null)
+				return false;
+		} else if (!this.account.equals(other.account)) {
+			return false;
+		}
 		return true;
 	}
 
@@ -163,7 +173,8 @@ public class PosOrder {
 				+ this.originPrice + "/" + po.originPrice + ", changePrice=" + this.changePrice + "/" + po.changePrice
 				+ ", totalNum=" + this.totalNum + "/" + po.totalNum + ", getNum=" + this.getNum + "/" + po.getNum
 				+ ", returnNum=" + this.returnNum + "/" + po.returnNum + ", getPrice=" + this.getPrice + "/"
-				+ po.getPrice + ", returnPrice=" + this.returnPrice + "/" + po.returnPrice + "]";
+				+ po.getPrice + ", returnPrice=" + this.returnPrice + "/" + po.returnPrice + ", account=" + this.account
+				+ "/" + po.account + "]";
 	}
 
 	public String getOrderId() {
@@ -180,6 +191,14 @@ public class PosOrder {
 
 	public void setOrderNo(String orderNo) {
 		this.orderNo = orderNo;
+	}
+
+	public String getAccount() {
+		return account;
+	}
+
+	public void setAccount(String account) {
+		this.account = account;
 	}
 
 	public String getCustomerName() {

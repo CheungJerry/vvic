@@ -86,46 +86,11 @@ public class VvicService {
 	 * @return
 	 */
 	private String updatePosOrderDetailFromDate(int year, int month, Date start, Date end, Cookie cookie) {
-		Date maxDate = Date.valueOf(this.posOrderDao.queryMaxDateInPosOrderDetail());
-		boolean hadUpdated = false;
-		List<PosOrderDetail> podListDB = this.posOrderDao.queryPosOrderDetailByDate(start,
-				Date.valueOf(end.toLocalDate().plusDays(1L)));
-		List<PosOrderDetail> podListOnline = getPosOrderDetailListFromDate(start.toString(), end.toString(), cookie);
-		logger.info("PosOrderDetail ---> db list size : {}, Online list size : {}", Integer.valueOf(podListDB.size()),
-				Integer.valueOf(podListOnline.size()));
-		Map<Long, PosOrderDetail> dbListMap = new HashMap<>(podListDB.size());
-		Map<Long, PosOrderDetail> onlineListMap = new HashMap<>(podListOnline.size());
-		for (PosOrderDetail posOrderDetail : podListDB)
-			dbListMap.put(posOrderDetail.getOrderDetailId(), posOrderDetail);
-		for (PosOrderDetail posOrderDetail : podListOnline)
-			onlineListMap.put(posOrderDetail.getOrderDetailId(), posOrderDetail);
-		List<PosOrderDetail> changeList = new ArrayList<>();
-		Set<String> delOrderNoSet = new HashSet<>();
-		Iterator<Map.Entry<Long, PosOrderDetail>> onlineMapIterator = onlineListMap.entrySet().iterator();
-		while (onlineMapIterator.hasNext()) {
-			Map.Entry<Long, PosOrderDetail> entry = onlineMapIterator.next();
-			if (Date.valueOf(((PosOrderDetail) entry.getValue()).getYmd()).after(maxDate))
-				continue;
-			PosOrderDetail dbPOS = dbListMap.get(entry.getKey());
-			if (dbPOS == null) {
-				hadUpdated = true;
-				changeList.add(entry.getValue());
-				delOrderNoSet.add(((PosOrderDetail) entry.getValue()).getOrderNo());
-			}
-		}
-		if (hadUpdated) {
-			int delNum = this.posOrderDao.deletePosOrderDetailByOrderNo(delOrderNoSet);
-			int insertNum = this.posOrderDao.PosOrderDetailInsertBatch(changeList);
-			logger.info("订单详情 --> {}年{}月修改了的订单号：{}",
-					new Object[] { Integer.valueOf(year), Integer.valueOf(month), JsonUtil.obj2Str(delOrderNoSet) });
-			String str = "订单详情 --> 更新" + year + "年" + month + "月的订单详情，线上订单详情总数：" + podListOnline.size() + "，数据库订单详情总数："
-					+ podListDB.size() + "，修改的订单号数量：" + changeList.size();
-			this.logDao.addLog(Log.info().setOperation("订单详情 --> 更新" + year + "年" + month + "月的订单详情")
-					.setOperation_detail("线上订单详情总数：" + podListOnline.size() + "，数据库订单详情总数：" + podListDB.size()
-							+ "，修改的订单号数量：" + changeList.size()));
-			return str;
-		}
-		String rtn = "订单详情 --> " + year + "年" + month + "月的订单详情与线上一致。";
+		String ymd = year + "-" + (month < 10 ? "0" + month : month);
+		int delNum = posOrderDao.deletePosOrderDetailByYmd(ymd, cookie.getCookie_id());
+		int insNum = (int) savePosOrderDetail(start.toString(), end.toString(), cookie);
+		String rtn = cookie.getCookie_id() + " " + year + "年" + month + "月:删除订单详情 --> " + delNum + "条，重新插入" + insNum
+				+ "条。";
 		logger.info(rtn);
 		this.logDao.addLog(Log.info().setOperation(rtn));
 		return rtn;
@@ -141,63 +106,11 @@ public class VvicService {
 	 * @return
 	 */
 	private String updatePosOrderFromDate(int year, int month, Date start, Date end, Cookie cookie) {
-		Date maxDate = Date.valueOf(this.posOrderDao.queryMaxDateInPosOrder());
-		boolean hadUpdated = false;
-		List<PosOrder> poListDB = this.posOrderDao.queryPosOrderByDate(start,
-				Date.valueOf(end.toLocalDate().plusDays(1L)));
-		List<PosOrder> poListOnline = getPosOrderListFromDate(start.toString(), end.toString(), cookie);
-		logger.info("PosOrder ---> db list size : {}, Online list size : {}", Integer.valueOf(poListDB.size()),
-				Integer.valueOf(poListOnline.size()));
-		Map<String, PosOrder> dbListMap = new HashMap<>(poListDB.size());
-		Map<String, PosOrder> onlineListMap = new HashMap<>(poListOnline.size());
-		for (PosOrder posOrder : poListDB)
-			dbListMap.put(posOrder.getOrderId(), posOrder);
-		for (PosOrder posOrder : poListOnline)
-			onlineListMap.put(posOrder.getOrderId(), posOrder);
-		List<PosOrder> changeList = new ArrayList<>();
-		Iterator<Map.Entry<String, PosOrder>> onlineMapIterator = onlineListMap.entrySet().iterator();
-		while (onlineMapIterator.hasNext()) {
-			Map.Entry<String, PosOrder> entry = onlineMapIterator.next();
-			if (Date.valueOf(((PosOrder) entry.getValue()).getYmd()).after(maxDate))
-				continue;
-			PosOrder dbPO = dbListMap.get(entry.getKey());
-			if (dbPO == null) {
-				changeList.add(entry.getValue());
-				hadUpdated = true;
-				continue;
-			}
-			if (((PosOrder) entry.getValue()).equals(dbPO))
-				continue;
-			hadUpdated = true;
-			changeList.add(entry.getValue());
-		}
-		Set<String> delSet = new HashSet<>();
-		Iterator<Map.Entry<String, PosOrder>> dbMapIterator = dbListMap.entrySet().iterator();
-		while (dbMapIterator.hasNext()) {
-			Map.Entry<String, PosOrder> entry = dbMapIterator.next();
-			PosOrder onlinePO = onlineListMap.get(entry.getKey());
-			if (onlinePO == null) {
-				delSet.add(((PosOrder) entry.getValue()).getOrderNo());
-				hadUpdated = true;
-			}
-		}
-		if (hadUpdated) {
-			Set<String> orderNoSet = new HashSet<>();
-			for (PosOrder posOrder : changeList) {
-				this.posOrderDao.updatePosOrder(posOrder);
-				orderNoSet.add(posOrder.getOrderNo());
-			}
-			this.posOrderDao.deletePosOrderByOrderNo(delSet);
-			logger.info("订单总览 --> {}年{}月修改了的订单号：{}",
-					new Object[] { Integer.valueOf(year), Integer.valueOf(month), JsonUtil.obj2Str(orderNoSet) });
-			String str = "订单总览 --> 更新" + year + "年" + month + "月的订单总览，线上订单数量：" + poListOnline.size() + "，数据库订单数量："
-					+ poListDB.size() + "，修改的订单数量：" + changeList.size() + "，删除的订单数量：" + delSet.size();
-			this.logDao.addLog(Log.info().setOperation("订单总览 --> 更新" + year + "年" + month + "月的订单总览")
-					.setOperation_detail("线上订单数量：" + poListOnline.size() + "，数据库订单数量：" + poListDB.size() + "，修改的订单数量："
-							+ changeList.size() + "，删除的订单数量：" + delSet.size()));
-			return str;
-		}
-		String rtn = "订单总览 --> " + year + "年" + month + "月的订单总览与线上一致。";
+		String ymd = year + "-" + (month < 10 ? "0" + month : month);
+		int delNum = posOrderDao.deletePosOrderByYmd(ymd, cookie.getCookie_id());
+		int insNum = (int) savePosOrder(start.toString(), end.toString(), cookie);
+		String rtn = cookie.getCookie_id() + " " + year + "年" + month + "月:删除订单 --> " + delNum + "条，重新插入" + insNum
+				+ "条。";
 		logger.info(rtn);
 		this.logDao.addLog(Log.info().setOperation(rtn));
 		return rtn;
@@ -252,8 +165,8 @@ public class VvicService {
 		if (tempList.size() != 0)
 			insertCount += this.posOrderDao.PosOrderDetailInsertBatch(tempList);
 		logger.info("details insert count : " + insertCount);
-		this.logDao.addLog(
-				Log.info().setOperation("PosOrderDetail共" + posOrderDetails.size() + "条数据，插入成功" + insertCount + "条数据"));
+		this.logDao.addLog(Log.info().setOperation(cookie.getCookie_id() + ":PosOrderDetail共" + posOrderDetails.size()
+				+ "条数据，插入成功" + insertCount + "条数据"));
 		return Integer.valueOf(insertCount);
 	}
 
@@ -267,15 +180,17 @@ public class VvicService {
 			String requestUrl = String.format(exportPosRecordUrl, new Object[] { curPage.toString(), start, end });
 			String result = GetRequest.requestByGetBackString(requestUrl, new HashMap<>(), this.restTemplate, headers);
 			List<PosOrderDetail> posOrderDetailResult = getPosOrderDetails(result, cookie);
-			if (posOrderDetailResult.size() == 0)
+			if (posOrderDetailResult.size() == 0) {
 				break;
-			Integer integer1 = curPage, integer2 = curPage = Integer.valueOf(curPage.intValue() + 1);
+			}
+			curPage = Integer.valueOf(curPage.intValue() + 1);
 			posOrderDetails.addAll(posOrderDetailResult);
 		}
 		return posOrderDetails;
 	}
 
 	public Object savePosOrder(String start, String end, Cookie cookie) {
+		logger.info(cookie.getCookie_id() + " start task");
 		List<PosOrder> posOrders = getPosOrderListFromDate(start, end, cookie);
 		logger.info("orders count : " + posOrders.size());
 		int insertCount = 0;
@@ -291,7 +206,8 @@ public class VvicService {
 		if (tempList.size() != 0)
 			insertCount += this.posOrderDao.PosOrderInsertBatch(tempList);
 		logger.info("orders insert count : " + insertCount);
-		this.logDao.addLog(Log.info().setOperation("PosOrder共" + posOrders.size() + "条数据，插入成功" + insertCount + "条数据"));
+		this.logDao.addLog(Log.info().setOperation(
+				cookie.getCookie_id() + ":PosOrder共" + posOrders.size() + "条数据，插入成功" + insertCount + "条数据"));
 		return Integer.valueOf(insertCount);
 	}
 
@@ -366,6 +282,7 @@ public class VvicService {
 		List<Map<String, Object>> recordList = getPosRecordDetailList(map);
 		for (Map<String, Object> record : recordList) {
 			PosOrderDetail posOrderDetail = new PosOrderDetail(record);
+			posOrderDetail.setAccount(cookie.getCookie_id());
 			posOrderDetails.add(posOrderDetail);
 		}
 		return posOrderDetails;
@@ -386,6 +303,7 @@ public class VvicService {
 		List<Map<String, Object>> recordList = getPosRecordList(map);
 		for (Map<String, Object> record : recordList) {
 			PosOrder posOrder = new PosOrder(record);
+			posOrder.setAccount(cookie.getCookie_id());
 			posOrders.add(posOrder);
 		}
 		return posOrders;

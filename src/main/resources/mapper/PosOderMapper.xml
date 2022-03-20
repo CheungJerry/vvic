@@ -3,12 +3,12 @@
 <mapper namespace="com.mofong.vvic.dao.PosOrderDao">
 
 	<insert id="PosOrderInsertBatch">
-		INSERT IGNORE INTO `vvic`.`pos_order`(`orderId`, `orderNo`,
+		INSERT IGNORE INTO `vvic`.`pos_order`(`orderId`, `orderNo`,`account`,
 		`customerName`, `originPrice`,
 		`changePrice`,`totalNum`,`getNum`,`returnNum`,`getPrice`,`returnPrice`,`ctime`,`ymd`)
 		VALUES
 		<foreach collection="list" separator="," item="item">
-			(#{item.orderId},#{item.orderNo}, #{item.customerName},
+			(#{item.orderId},#{item.orderNo},#{item.account}, #{item.customerName},
 			#{item.originPrice}, #{item.changePrice}, #{item.totalNum},
 			#{item.getNum}, #{item.returnNum},
 			#{item.getPrice},#{item.returnPrice}, #{item.ctime},
@@ -18,12 +18,12 @@
 
 	<insert id="PosOrderDetailInsertBatch">
 		INSERT IGNORE INTO `vvic`.`pos_order_detail`(`orderDetailId`,
-		`orderNo`,
+		`orderNo`,`account`,
 		`artNo`, `size`,
 		`title`,`indexImgUrl`,`skuNum`,`changePrice`,`actualPrice`,`skuLevelPrice`,`ctime`,`ymd`,`unitPrice`,`type`,`orderType`,`skuCancelNum`,`showNum`)
 		VALUES
 		<foreach collection="list" separator="," item="item">
-			(#{item.orderDetailId},#{item.orderNo}, #{item.artNo},
+			(#{item.orderDetailId},#{item.orderNo},#{item.account}, #{item.artNo},
 			#{item.size},
 			#{item.title}, #{item.indexImgUrl},
 			#{item.skuNum},
@@ -53,13 +53,13 @@
 
 	<select id="queryPosOrderByDate"
 		resultType="com.mofong.vvic.bean.PosOrder">
-		select * from vvic.pos_order where ymd &gt;= #{start} and
+		select * from vvic.pos_order where account=#{account} and ymd &gt;= #{start} and
 		ymd &lt; #{end}
 	</select>
 
 	<select id="queryPosOrderDetailByDate"
 		resultType="com.mofong.vvic.bean.PosOrderDetail">
-		select * from vvic.pos_order_detail where ymd &gt;=
+		select * from vvic.pos_order_detail where account=#{account} and ymd &gt;=
 		#{start} and
 		ymd &lt; #{end}
 	</select>
@@ -68,21 +68,22 @@
 		update vvic.pos_order set
 		`originPrice`=#{originPrice},
 		`changePrice`=#{changePrice},`totalNum`=#{totalNum},`getNum`=#{getNum},`returnNum`=#{returnNum},`getPrice`=#{getPrice},`returnPrice`=#{returnPrice}
-		where orderId=#{orderId} and orderNo=#{orderNo}
+		where orderId=#{orderId} and orderNo=#{orderNo} and account=#{account}
 	</update>
 
 	<update id="updatePosOrderDetail">
 		update vvic.pos_order_detail set
-		`artNo`, `size`,
-		`title`,`indexImgUrl`,`skuNum`,
-		`changePrice`,`actualPrice`,`skuLevelPrice`,
-		`unitPrice`,`type`,`orderType`,
-		`skuCancelNum`,`showNum`
+		`artNo`=#{artNo}, `size`=#{size},
+		`title`=#{title},`indexImgUrl`=#{indexImgUrl},`skuNum`=#{skuNum},
+		`changePrice`=#{changePrice},`actualPrice`=#{actualPrice},`skuLevelPrice`=#{skuLevelPrice},
+		`unitPrice`=#{unitPrice},`type`=#{type},`orderType`=#{orderType},
+		`skuCancelNum`=#{skuCancelNum},`showNum`=#{showNum}
+		where orderDetailId=#{orderDetailId} and orderNo=#{orderNo} and account=#{account}
 	</update>
 
 	<delete id="deletePosOrderDetailByOrderNo">
 		delete from vvic.pos_order_detail where orderNo in (
-		<foreach collection="collection" separator="," item="item">
+		<foreach collection="paramSet" separator="," item="item">
 			#{item}
 		</foreach>
 		)
@@ -90,7 +91,7 @@
 	
 	<delete id="deletePosOrderByOrderNo">
 		delete from vvic.pos_order where orderNo in (
-		<foreach collection="collection" separator="," item="item">
+		<foreach collection="paramSet" separator="," item="item">
 			#{item}
 		</foreach>
 		)
@@ -103,4 +104,12 @@
 	<select id="queryMaxDateInPosOrderDetail" resultType="String">
 		select max(ymd) from vvic.pos_order_detail
 	</select>
+	
+	<delete id="deletePosOrderByYmd">
+		delete from vvic.pos_order where account=#{account} and ymd like '${ymd}%'
+	</delete>
+	
+	<delete id="deletePosOrderDetailByYmd">
+		delete from vvic.pos_order_detail where account=#{account} and ymd like '${ymd}%'
+	</delete>
 </mapper>

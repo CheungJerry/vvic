@@ -30,7 +30,10 @@ public class VVICTest {
 	@Test
 	public void test() {
 //		service.exportPosRecord("2021-09-01", "2021-09-13");
-		service.savePosOrder("2018-01-01", "2019-01-01", CookieService.cookieMap.get("vvic"));
+//		service.savePosOrderDetail("2018-03-01", "2022-03-19", CookieService.cookieMap.get("lvx"));
+//		service.savePosOrder("2018-03-01", "2022-03-19", CookieService.cookieMap.get("lvx"));
+		
+		service.updateVvicDataByDate(2022,2,CookieService.cookieMap.get("lvx"));
 	}
 
 //	@Test
