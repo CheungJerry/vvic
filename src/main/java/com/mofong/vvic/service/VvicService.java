@@ -130,11 +130,11 @@ public class VvicService {
 			this.logDao.addLog(Log.info().setOperation(cookie.getCookie_id() + ":" + "PosOrderDetail完成"));
 			logger.info(cookie.getCookie_id() + ":" + LocalDateTime.now().toString() + "定时任务 执行成功");
 			this.logDao.addLog(Log.info().setOperation(cookie.getCookie_id() + ":" + "获取数据成功"));
-			LocalDateTime lastDay = LocalDateTime.now().plusDays(-1);
-			if (lastDay.getDayOfMonth() % 10 == 0 || LocalDateTime.now().getDayOfMonth() == 1) {
-				updateVvicDataByDate(lastDay.getYear(), lastDay.getMonthValue(), cookie);
-			}
-			this.logDao.addLog(Log.info().setOperation(cookie.getCookie_id() + ":" + "更新数据成功"));
+//			LocalDateTime lastDay = LocalDateTime.now().plusDays(-1);
+//			if (lastDay.getDayOfMonth() % 10 == 0 || LocalDateTime.now().getDayOfMonth() == 1) {
+//				updateVvicDataByDate(lastDay.getYear(), lastDay.getMonthValue(), cookie);
+//			}
+//			this.logDao.addLog(Log.info().setOperation(cookie.getCookie_id() + ":" + "更新数据成功"));
 		} catch (Exception e) {
 			logger.error(cookie.getCookie_id() + ":" + LocalDateTime.now().toString() + "定时任务 执行失败");
 			this.logDao.addLog(Log.error().setOperation(cookie.getCookie_id() + ":" + "定时任务执行失败")
