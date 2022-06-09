@@ -13,8 +13,9 @@ CREATE TABLE `pos_order` (
   `returnPrice` double(10,2) DEFAULT NULL,
   `ctime` datetime DEFAULT NULL,
   `ymd` date DEFAULT NULL,
-  PRIMARY KEY (`orderId`,`orderNo`),
   UNIQUE KEY `unq_account` (`orderId`,`orderNo`,`account`) USING BTREE,
   KEY `account` (`account`),
-  KEY `ymd` (`ymd`)
+  KEY `ymd` (`ymd`),
+  KEY `idx_orderno` (`orderNo`),
+  KEY `idx_orderid` (`orderId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -17,8 +17,8 @@ CREATE TABLE `pos_order_detail` (
   `orderType` tinyint DEFAULT NULL,
   `skuCancelNum` int DEFAULT NULL,
   `showNum` int DEFAULT NULL,
-  PRIMARY KEY (`orderDetailId`),
   UNIQUE KEY `idx_no_detailid` (`orderDetailId`,`orderNo`,`account`) USING BTREE,
   KEY `account` (`account`),
-  KEY `ymd` (`ymd`)
+  KEY `ymd` (`ymd`),
+  KEY `idx_detail` (`orderDetailId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
